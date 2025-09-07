@@ -7,11 +7,18 @@ const authregister=require("./routes/auth")
 const resumeData= require("./routes/Data")
 const authMiddleware = require("./middleware/authmiddleware")
 const app = express();
+const path = require('path');
 
 connectDB();
 
 app.use(express.json());
 app.use(cors());
+
+app.use(express.static(path.join(__dirname, 'frontend/build')));
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend/build', 'index.html'));
+});
 
 
 app.use('/api/auth',authregister);
