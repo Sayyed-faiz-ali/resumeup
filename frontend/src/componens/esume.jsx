@@ -91,7 +91,7 @@ const ResumeForm = () => {
     }
     try {
        const config = { headers: { 'Content-Type': 'application/json', 'x-auth-token': token } };
-      await axios.post(`${API_URL}/api/data/create`, formData, config);
+      const res = await axios.post(`${API_URL}/api/data/create`, formData, config);
       alert('Resume saved successfully!');
       console.log('Saved:', res.data);
       navigate('/dashboard');
