@@ -71,8 +71,9 @@ const SingleResume = () => {
 
   if (!resume) return null;
 
-  return (
+ return (
     <div className="bg-gray-50 text-gray-900 min-h-screen p-8 font-sans">
+      {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <h1 className="text-2xl font-bold text-gray-800">View Resume</h1>
         <div className="flex gap-4">
@@ -91,6 +92,7 @@ const SingleResume = () => {
         </div>
       </div>
 
+      {/* Resume Container */}
       <div ref={resumeRef} className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-10">
         {/* Name + Contact */}
         <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
@@ -98,24 +100,26 @@ const SingleResume = () => {
         </h1>
         <p className="text-center text-sm text-gray-600 mb-6">
           {resume.personalDetails?.email} | {resume.personalDetails?.phone} |{" "}
-          <a
-            href={resume.personalDetails?.linkedin}
+          <Link
+            to={resume.personalDetails?.linkedin}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
             LinkedIn
-          </a>{" "}
+          </Link>{" "}
           |{" "}
-          <a
-            href={resume.personalDetails?.github}
+          <Link
+            to={resume.personalDetails?.github}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
             GitHub
-          </a>
+          </Link>
         </p>
+
+        <hr className="border-gray-300 my-6" />
 
         {/* Skills */}
         {resume.skills?.length > 0 && (
@@ -136,6 +140,109 @@ const SingleResume = () => {
           </section>
         )}
 
+        <hr className="border-gray-700 my-4" />
+
+        {/* Education */}
+        {resume.education?.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Education</h2>
+            {resume.education.map((edu, i) => (
+              <div key={i} className="mb-4">
+                <div className="flex justify-between">
+                  <h3 className="font-semibold text-gray-800 text-lg">{edu.degree}</h3>
+                  <p className="text-sm text-gray-500">
+                    {new Date(edu.startDate).toLocaleDateString()} –{" "}
+                    {new Date(edu.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+                <p className="text-gray-700 text-sm">{edu.school}</p>
+                {edu.description && (
+                  <p className="text-gray-600 text-sm mt-1">{edu.description}</p>
+                )}
+              </div>
+            ))}
+          </section>
+        )}
+
+        <hr className="border-gray-700 my-4" />
+
+        {/* Experience */}
+        {resume.experience?.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Experience</h2>
+            {resume.experience.map((exp, i) => (
+              <div key={i} className="mb-4">
+                <div className="flex justify-between">
+                  <h3 className="font-semibold text-gray-800">{exp.title}</h3>
+                  <p className="text-sm text-gray-500">
+                    {new Date(exp.startDate).toLocaleDateString()} –{" "}
+                    {new Date(exp.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+                <p className="text-gray-700 text-sm">{exp.company}</p>
+                {exp.description && (
+                  <p className="text-gray-600 text-sm mt-1">{exp.description}</p>
+                )}
+              </div>
+            ))}
+          </section>
+        )}
+
+        <hr className="border-gray-700 my-4" />
+
+        {/* Projects */}
+        {resume.projects?.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Projects</h2>
+            {resume.projects.map((proj, i) => (
+              <div key={i} className="mb-4">
+                <h3 className="font-semibold text-gray-800">{proj.title}</h3>
+                <p className="text-gray-600 text-sm">{proj.description}</p>
+              </div>
+            ))}
+          </section>
+        )}
+
+        <hr className="border-gray-700 my-4" />
+
+        {/* Certificates */}
+        {resume.certificate?.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Certificates</h2>
+            <ul className="list-disc pl-6 space-y-2">
+              {resume.certificate.map((cert, i) => (
+                <li key={i} className="text-gray-700 text-sm">
+                  <span className="font-semibold">{cert.title}</span> — {cert.issuer} (
+                  {new Date(cert.date).toLocaleDateString()})
+                  {cert.link && (
+                    <a
+                      href={cert.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 text-blue-600 underline"
+                    >
+                      Verify
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        <hr className="border-gray-700 my-4" />
+
+        {/* Achievements */}
+        {resume.achievements?.length > 0 && (
+          <section>
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Achievements</h2>
+            <ul className="list-disc pl-6 space-y-1 text-gray-700 text-sm">
+              {resume.achievements.map((ach, i) => (
+                <li key={i}>{ach}</li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </div>
   );
