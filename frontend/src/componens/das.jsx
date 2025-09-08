@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import LoadingDots from "./loadin";
 
 const Dashboard = () => {
   const [resumes, setResumes] = useState([]);
-  const [userName, setUserName] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  // const { resumeId } = useParams();
+   
 
-  const { resumeId } = useParams();
   const navigate = useNavigate();
 
   const handleSearch = (event) => {
@@ -23,6 +22,7 @@ const Dashboard = () => {
     resume && resume.title && resume.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Fetch all resumes for the user
   useEffect(() => {
     const fetchResumes = async () => {
       const token = localStorage.getItem("token");
@@ -32,14 +32,8 @@ const Dashboard = () => {
       }
 
       try {
-        const config = {
-          headers: { "x-auth-token": token },
-        };
-
-        const res = await axios.get(
-          `http://localhost:5000/api/data`,
-          config
-        );
+        const config = { headers: { "x-auth-token": token } };
+        const res = await axios.get(`http://localhost:5000/api/data`, config);
         setResumes(Array.isArray(res.data) ? res.data : []);
         setLoading(false);
       } catch (err) {
@@ -57,27 +51,31 @@ const Dashboard = () => {
     navigate("/login");
   };
 
+  // Delete resume
   const handleDelete = async (id) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this resume?");
-    if (!confirmDelete) return;
+  const confirmDelete = window.confirm("Are you sure you want to delete this resume?");
+  if (!confirmDelete) return;
+
+  const token = localStorage.getItem("token");
+
+  try {
+    await axios.delete(`http://localhost:5000/api/data/${id}`, {
+      headers: { "x-auth-token": token }
+    });
+    alert("Resume deleted successfully!");
+    setResumes(resumes.filter((resume) => resume._id !== id));
+  } catch (err) {
+    console.error("Failed to delete resume:", err.response?.data || err.message);
+    alert(err.response?.data?.msg || "Failed to delete resume");
+  }
+};
 
 
-    const token = localStorage.getItem("token");
-    try {
-      const config = {
-        headers: { "x-auth-token": token },
-      };
-      await axios.delete(`http://localhost:5000/api/data/${resumeId}}`, config);
-      setResumes(resumes.filter(resume => resume._id !== id));
-    } catch (err) {
-      console.error("Failed to delete resume:", err.response?.data || err.message);
-      setError(err.response?.data?.msg || "Failed to delete resume");
-    }
-  };
-
-  if (loading) return <div className="flex items-center justify-center min-h-screen">
-  <LoadingDots />   
-</div>
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <LoadingDots />   
+    </div>
+  );
 
   if (error) return <p className="p-10 text-red-600">{error}</p>;
 
@@ -86,18 +84,15 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-5">
         <div className="flex items-center space-x-4">
-          <img className="w-20 h-20 rounded-full" src="/logo.png" alt="Resume Platform Logo" />
-       <motion.h2
-      className="text-3xl font-semibold text-blue-600"
-      initial={{ y: 0 }}
-      animate={{ y: [0, -50, 0] }} 
-      transition={{
-        duration: 1,
-        ease: "easeInOut"
-      }}
-    >
-      Dashboard
-    </motion.h2>
+          <img className="w-20 h-20 rounded-full" src="/logo.png" alt="Logo" />
+          <motion.h2
+            className="text-3xl font-semibold text-blue-600"
+            initial={{ y: 0 }}
+            animate={{ y: [0, -50, 0] }} 
+            transition={{ duration: 1, ease: "easeInOut" }}
+          >
+            Dashboard
+          </motion.h2>
         </div>
         <div className="flex space-x-4">
           <Link to="/create">
@@ -145,27 +140,31 @@ const Dashboard = () => {
                     </h3>
                     <p className="text-sm text-gray-500">
                       Last updated:{" "}
-                      {resume.lastUpdated
-                        ? new Date(resume.lastUpdated).toLocaleDateString()
+                      {resume.startDate && !isNaN(new Date(resume.startDate))
+                        ? new Date(resume.startDate).toLocaleString()
                         : "N/A"}
                     </p>
                   </div>
                 </div>
+
                 <div className="flex space-x-2">
                   <Link to={`/view/${resume._id}`}>
                     <button className="bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-md hover:bg-blue-200">
                       View
                     </button>
                   </Link>
-                  <button className="bg-yellow-100 text-yellow-600 font-medium py-2 px-4 rounded-md hover:bg-yellow-200">
+                  <Link to={`/edit/${resume._id}`}>
+                    <button className="bg-yellow-100 text-yellow-600 font-medium py-2 px-4 rounded-md hover:bg-yellow-200">
                       Edit
+                    </button>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(resume._id)}
+                    className="bg-red-100 text-red-600 font-medium px-4 py-2 rounded hover:bg-red-200"
+                  >
+                    Delete Resume
                   </button>
-                     <button
-      onClick={() => handleDelete(resume._id)}
-      className="bg-red-100 text-red-600 font-medium py-2 px-4 rounded-md hover:bg-red-200"
-    >
-      Delete
-    </button>
                 </div>
               </div>
             ))

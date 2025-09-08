@@ -6,7 +6,8 @@ import Login from './componens/lo';
 import SignUp from './componens/si';
 import ViewResume from './componens/view';
 import A from "./componens/a"
-import ProtectedRoute from './componens/ProtectedRoute'; // ✅ import
+import ProtectedRoute from './componens/ProtectedRoute'; 
+import EditResume from './componens/edit';
 
 function App() {
   return (
@@ -39,6 +40,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ViewResume />
+              </ProtectedRoute>
+            }
+          />
+           <Route
+            path="/edit/:resumeId"
+            element={
+              <ProtectedRoute>
+                <EditResume />
               </ProtectedRoute>
             }
           />

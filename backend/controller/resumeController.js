@@ -52,23 +52,45 @@ exports.viewResume = async (req, res) => {
   }
 }
 
-exports.Remove = async (req, res)=>{
-
+exports.Remove = async (req, res) => {
   try {
     const resume = await ResumeModel.findById(req.params.id);
 
     if (!resume) {
-      return res.status(404).json({ msg: 'Resume not found' });
+      return res.status(404).json({ msg: "Resume not found" });
     }
 
-    // This is where you would add logic to check if the user owns the resume
-    // await resume.remove(); // Mongoose 5.x
-     await ResumeModel.findByIdAndDelete(req.params.id);
-    res.json({ msg: 'Resume removed' });
+    await ResumeModel.findByIdAndDelete(req.params.id);
+    res.json({ msg: "Resume deleted successfully" });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: "Failed to delete resume" });
   }
+};
 
 
+// Edit resume controller
+exports.Edit = async (req, res) => {
+  try {
+    const resumeId = req.params.id;
+    const updateData = req.body; 
+
+    const resume = await ResumeModel.findById(resumeId);
+    if (!resume) {
+      return res.status(404).json({ msg: "Resume not found" });
+    }
+
+   
+    const updatedResume = await ResumeModel.findByIdAndUpdate(
+      resumeId,
+      { $set: updateData },
+      { new: true } 
+    );
+
+    res.json(updatedResume);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Server Error");
   }
+};
+

@@ -22,7 +22,6 @@ const ResumeForm = () => {
     skills: [],
   });
 
-  // Local states for inputs
   const [educationEntry, setEducationEntry] = useState({ school: '', degree: '', description:'', startDate: '', endDate: '' });
   const [experienceEntry, setExperienceEntry] = useState({ company: '', title: '', location: '', startDate: '', endDate: '', description: '' });
   const [projectEntry, setProjectEntry] = useState({ title: '', description: '', link: ''});
@@ -30,7 +29,6 @@ const ResumeForm = () => {
   const [certificateEntry, setCertificateEntry] = useState({ title: "", issuer: "", date: "", link: "" });
   const [achievementEntry, setAchievementEntry] = useState('');
 
-  // ------------------ Handlers ------------------
   const handleInputChange = (e, section) => {
     const { name, value } = e.target;
     if (section === 'personalDetails') {
@@ -81,7 +79,6 @@ const ResumeForm = () => {
     }
   };
 
-  // ------------------ Submit ------------------
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem('token');
@@ -102,13 +99,24 @@ const ResumeForm = () => {
     }
   };
 
-  // ------------------ UI ------------------
   return (
     <>
-      <div className="flex items-center space-x-4 mb-4">
-        <img className='w-20 h-20 rounded-full' src="/logo.png" alt="Resume Platform Logo" />
-        <Link to="/dashboard" className="text-blue-600 font-bold hover:underline">HOME</Link>
-      </div>
+    <div className="flex items-center mb-4">
+  <img
+    className="w-20 h-20 rounded-full"
+    src="/logo.png"
+    alt="Resume Platform Logo"
+  />
+
+  <Link
+    to="/dashboard"
+    className="ml-auto text-blue-600 font-bold hover:underline"
+  >
+    Dashboard
+  </Link>
+</div>
+
+
 
       <div className="bg-gray-100 min-h-screen p-10 font-sans text-gray-800">
         <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-md">

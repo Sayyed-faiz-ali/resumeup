@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useNavigate, useParams, Link } from "react-router-dom";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 
 const SingleResume = () => {
   const [resume, setResume] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { resumeId } = useParams(); // get resume ID from URL
+  const { resumeId } = useParams();
+  const resumeRef = useRef(); 
 
   useEffect(() => {
     const fetchResume = async () => {
@@ -18,15 +21,11 @@ const SingleResume = () => {
       }
 
       try {
-        const config = {
-          headers: { "x-auth-token": token },
-        };
-
+        const config = { headers: { "x-auth-token": token } };
         const res = await axios.get(
           `http://localhost:5000/api/data/${resumeId}`,
           config
         );
-
         setResume(res.data);
         setLoading(false);
       } catch (err) {
@@ -38,6 +37,19 @@ const SingleResume = () => {
 
     fetchResume();
   }, [resumeId, navigate]);
+
+  const downloadResume = () => {
+    const input = resumeRef.current;
+    html2canvas(input, { scale: 2 }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${resume.personalDetails?.name || "resume"}.pdf`);
+    });
+  };
 
   if (loading)
     return (
@@ -66,16 +78,24 @@ const SingleResume = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <h1 className="text-2xl font-bold text-gray-800">View Resume</h1>
-        <Link
-          to="/dashboard"
-          className="px-5 py-2 bg-blue-600 text-white rounded-lg font-medium shadow hover:bg-blue-700 transition"
-        >
-          Back to Dashboard
-        </Link>
+        <div className="flex gap-4">
+          <button
+            onClick={downloadResume}
+            className="px-5 py-2 bg-green-600 text-white rounded-lg font-medium shadow hover:bg-green-700 transition"
+          >
+            Download PDF
+          </button>
+          <Link
+            to="/dashboard"
+            className="px-5 py-2 bg-blue-600 text-white rounded-lg font-medium shadow hover:bg-blue-700 transition"
+          >
+            Back to Dashboard
+          </Link>
+        </div>
       </div>
 
       {/* Resume Container */}
-      <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-10">
+      <div ref={resumeRef} className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-10">
         {/* Name + Contact */}
         <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
           {resume.personalDetails?.name || "Your Name"}
@@ -83,17 +103,16 @@ const SingleResume = () => {
         <p className="text-center text-sm text-gray-600 mb-6">
           {resume.personalDetails?.email} | {resume.personalDetails?.phone} |{" "}
           <Link
-           to={resume.personalDetails?.linkedin}
+            to={resume.personalDetails?.linkedin}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
           >
-
             LinkedIn
-          </Link> {" "}
+          </Link>{" "}
           |{" "}
           <Link
-            href={resume.personalDetails?.github}
+            to={resume.personalDetails?.github}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:underline"
@@ -107,37 +126,32 @@ const SingleResume = () => {
         {/* Skills */}
         {resume.skills?.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">
-              Skills
-            </h2>
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Skills</h2>
             <div className="flex flex-wrap gap-2">
-              {(Array.isArray(resume.skills)
-                ? resume.skills
-                : resume.skills.split(",")
-              ).map((skill, i) => (
-                <span
-                  key={i}
-                  className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
-                >
-                  {skill.trim()}
-                </span>
-              ))}
+              {(Array.isArray(resume.skills) ? resume.skills : resume.skills.split(",")).map(
+                (skill, i) => (
+                  <span
+                    key={i}
+                    className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium"
+                  >
+                    {skill.trim()}
+                  </span>
+                )
+              )}
             </div>
           </section>
         )}
-<hr className="border-gray-700 my-4" />
+
+        <hr className="border-gray-700 my-4" />
+
         {/* Education */}
         {resume.education?.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">
-              Education
-            </h2>
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Education</h2>
             {resume.education.map((edu, i) => (
               <div key={i} className="mb-4">
                 <div className="flex justify-between">
-                  <h3 className="font-semibold text-gray-800 text-lg">
-                    {edu.degree}
-                  </h3>
+                  <h3 className="font-semibold text-gray-800 text-lg">{edu.degree}</h3>
                   <p className="text-sm text-gray-500">
                     {new Date(edu.startDate).toLocaleDateString()} –{" "}
                     {new Date(edu.endDate).toLocaleDateString()}
@@ -151,13 +165,13 @@ const SingleResume = () => {
             ))}
           </section>
         )}
-<hr className="border-gray-700 my-4" />
+
+        <hr className="border-gray-700 my-4" />
+
         {/* Experience */}
         {resume.experience?.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">
-              Experience
-            </h2>
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Experience</h2>
             {resume.experience.map((exp, i) => (
               <div key={i} className="mb-4">
                 <div className="flex justify-between">
@@ -169,42 +183,39 @@ const SingleResume = () => {
                 </div>
                 <p className="text-gray-700 text-sm">{exp.company}</p>
                 {exp.description && (
-                  <p className="text-gray-600 text-sm mt-1">
-                    {exp.description}
-                  </p>
+                  <p className="text-gray-600 text-sm mt-1">{exp.description}</p>
                 )}
               </div>
             ))}
           </section>
         )}
-<hr className="border-gray-700 my-4" />
+
+        <hr className="border-gray-700 my-4" />
+
         {/* Projects */}
         {resume.projects?.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">
-              Projects
-            </h2>
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Projects</h2>
             {resume.projects.map((proj, i) => (
               <div key={i} className="mb-4">
                 <h3 className="font-semibold text-gray-800">{proj.title}</h3>
                 <p className="text-gray-600 text-sm">{proj.description}</p>
-                <a href={proj.link}></a>
               </div>
             ))}
           </section>
         )}
-<hr className="border-gray-700 my-4" />
+
+        <hr className="border-gray-700 my-4" />
+
         {/* Certificates */}
         {resume.certificate?.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">
-              Certificates
-            </h2>
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Certificates</h2>
             <ul className="list-disc pl-6 space-y-2">
               {resume.certificate.map((cert, i) => (
                 <li key={i} className="text-gray-700 text-sm">
-                  <span className="font-semibold">{cert.title}</span> —{" "}
-                  {cert.issuer} ({new Date(cert.date).toLocaleDateString()})
+                  <span className="font-semibold">{cert.title}</span> — {cert.issuer} (
+                  {new Date(cert.date).toLocaleDateString()})
                   {cert.link && (
                     <a
                       href={cert.link}
@@ -220,13 +231,13 @@ const SingleResume = () => {
             </ul>
           </section>
         )}
-<hr className="border-gray-700 my-4" />
+
+        <hr className="border-gray-700 my-4" />
+
         {/* Achievements */}
         {resume.achievements?.length > 0 && (
           <section>
-            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">
-              Achievements
-            </h2>
+            <h2 className="text-lg font-bold uppercase tracking-wide mb-2">Achievements</h2>
             <ul className="list-disc pl-6 space-y-1 text-gray-700 text-sm">
               {resume.achievements.map((ach, i) => (
                 <li key={i}>{ach}</li>
