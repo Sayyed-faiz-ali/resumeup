@@ -8,6 +8,8 @@ const authregister = require('./routes/auth');
 const resumeData = require('./routes/Data');
 const authMiddleware = require('./middleware/authmiddleware');
 
+const path = require("path");
+
 const app = express();
 connectDB();
 
