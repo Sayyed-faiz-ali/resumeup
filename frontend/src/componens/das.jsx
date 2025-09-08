@@ -10,6 +10,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   // const { resumeId } = useParams();
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
    
 
   const navigate = useNavigate();
@@ -22,53 +24,47 @@ const Dashboard = () => {
     resume && resume.title && resume.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Fetch all resumes for the user
-  useEffect(() => {
+  // useEffect(() => {
     const fetchResumes = async () => {
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+      if (!token) return navigate("/login");
 
       try {
         const config = { headers: { "x-auth-token": token } };
-        const res = await axios.get(`http://localhost:5000/api/data`, config);
+        const res = await axios.get(`${API_URL}/api/data`, config);
         setResumes(Array.isArray(res.data) ? res.data : []);
-        setLoading(false);
       } catch (err) {
         console.error("Failed to fetch resumes:", err.response?.data || err.message);
         setError(err.response?.data?.msg || "Server Error");
+      } finally {
         setLoading(false);
       }
     };
 
     fetchResumes();
-  }, [navigate]);
+  }, [navigate, API_URL]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
-  // Delete resume
   const handleDelete = async (id) => {
-  const confirmDelete = window.confirm("Are you sure you want to delete this resume?");
-  if (!confirmDelete) return;
+    if (!window.confirm("Are you sure you want to delete this resume?")) return;
 
-  const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(`${API_URL}/api/data/${id}`, {
+        headers: { "x-auth-token": token }
+      });
+      alert("Resume deleted successfully!");
+      setResumes(prev => prev.filter(resume => resume._id !== id));
+    } catch (err) {
+      console.error("Failed to delete resume:", err.response?.data || err.message);
+      alert(err.response?.data?.msg || "Failed to delete resume");
+    }
+  }; Fetch all resumes for the user
 
-  try {
-    await axios.delete(`http://localhost:5000/api/data/${id}`, {
-      headers: { "x-auth-token": token }
-    });
-    alert("Resume deleted successfully!");
-    setResumes(resumes.filter((resume) => resume._id !== id));
-  } catch (err) {
-    console.error("Failed to delete resume:", err.response?.data || err.message);
-    alert(err.response?.data?.msg || "Failed to delete resume");
-  }
-};
 
 
   if (loading) return (
