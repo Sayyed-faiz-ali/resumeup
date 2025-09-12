@@ -3,41 +3,49 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import LoadingDots from "./loadin";
+import { IconEye,IconEdit,IconX } from '@tabler/icons-react';
 
 const Dashboard = () => {
   const [resumes, setResumes] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
-  const handleSearch = (event) => setSearchTerm(event.target.value);
+  const handleSearch = (event) => {
+    setSearchTerm(event.target.value);
+  };
 
-  const filteredResumes = resumes.filter(resume =>
-    resume?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredResumes = resumes.filter(
+    (resume) =>
+      resume &&
+      resume.title &&
+      resume.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Fetch resumes
   useEffect(() => {
     const fetchResumes = async () => {
       const token = localStorage.getItem("token");
-      if (!token) return navigate("/login");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
 
       try {
         const config = { headers: { "x-auth-token": token } };
-        const res = await axios.get(`${API_URL}/api/data`, config);
+        const res = await axios.get(`http://localhost:5000/api/data`, config);
         setResumes(Array.isArray(res.data) ? res.data : []);
+        setLoading(false);
       } catch (err) {
         console.error("Failed to fetch resumes:", err.response?.data || err.message);
         setError(err.response?.data?.msg || "Server Error");
-      } finally {
         setLoading(false);
       }
     };
 
     fetchResumes();
-  }, [navigate, API_URL]);
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -45,51 +53,56 @@ const Dashboard = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this resume?")) return;
+    const confirmDelete = window.confirm("Are you sure you want to delete this resume?");
+    if (!confirmDelete) return;
 
     const token = localStorage.getItem("token");
+
     try {
-      await axios.delete(`${API_URL}/api/data/${id}`, { headers: { "x-auth-token": token } });
+      await axios.delete(`http://localhost:5000/api/data/${id}`, {
+        headers: { "x-auth-token": token },
+      });
       alert("Resume deleted successfully!");
-      setResumes(prev => prev.filter(resume => resume._id !== id));
+      setResumes(resumes.filter((resume) => resume._id !== id));
     } catch (err) {
       console.error("Failed to delete resume:", err.response?.data || err.message);
       alert(err.response?.data?.msg || "Failed to delete resume");
     }
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen">
-      <LoadingDots />
-    </div>
-  );
+  if (loading)
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingDots />
+      </div>
+    );
 
   if (error) return <p className="p-10 text-red-600">{error}</p>;
 
   return (
-    <div className="bg-gray-100 min-h-screen p-10">
+    <div className="bg-gray-100 min-h-screen p-4 sm:p-6 lg:p-10">
       {/* Header */}
-      <div className="flex justify-between items-center mb-5">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
         <div className="flex items-center space-x-4">
-          <img className="w-20 h-20 rounded-full" src="/logo.png" alt="Logo" />
+          <img className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" src="/logo.png" alt="Logo" />
           <motion.h2
-            className="text-3xl font-semibold text-blue-600"
+            className="text-2xl sm:text-3xl font-semibold text-blue-600"
             initial={{ y: 0 }}
-            animate={{ y: [0, -50, 0] }}
+            animate={{ y: [0, -40, 0] }}
             transition={{ duration: 1, ease: "easeInOut" }}
           >
             Dashboard
           </motion.h2>
         </div>
-        <div className="flex space-x-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <Link to="/create">
-            <button className="bg-blue-600 text-white py-2 px-5 rounded-md font-medium hover:bg-blue-700">
+            <button className="w-full sm:w-auto bg-blue-600 text-white py-2 px-5 rounded-md font-medium hover:bg-blue-700">
               Create New Resume
             </button>
           </Link>
           <button
             onClick={handleLogout}
-            className="bg-red-600 text-white py-2 px-5 rounded-md font-medium hover:bg-red-700"
+            className="w-full sm:w-auto bg-red-600 text-white py-2 px-5 rounded-md font-medium hover:bg-red-700"
           >
             Logout
           </button>
@@ -97,7 +110,8 @@ const Dashboard = () => {
       </div>
 
       {/* Resume List */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-white p-4 sm:p-6 rounded-lg shadow-md">
+        {/* Search */}
         <div className="mb-5">
           <input
             type="text"
@@ -108,12 +122,13 @@ const Dashboard = () => {
           />
         </div>
 
+        {/* Resume Cards */}
         <div className="flex flex-col space-y-4">
           {filteredResumes.length > 0 ? (
             filteredResumes.map((resume) => (
               <div
                 key={resume._id}
-                className="bg-gray-50 p-4 rounded-lg shadow-sm flex justify-between items-center"
+                className="bg-gray-50 p-4 rounded-lg shadow-sm flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4"
               >
                 <div className="flex items-center">
                   <img
@@ -122,36 +137,42 @@ const Dashboard = () => {
                     className="w-12 h-12 rounded-full mr-4"
                   />
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">{resume.title || "Untitled Resume"}</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      {resume.title || "Untitled Resume"}
+                    </h3>
                     <p className="text-sm text-gray-500">
-                      Last updated: {resume.startDate ? new Date(resume.startDate).toLocaleString() : "N/A"}
+                      Last updated:{" "}
+                      {resume.startDate && !isNaN(new Date(resume.startDate))
+                        ? new Date(resume.startDate).toLocaleString()
+                        : "N/A"}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Link to={`/view/${resume._id}`}>
-                    <button className="bg-blue-100 text-blue-600 font-medium py-2 px-4 rounded-md hover:bg-blue-200">
-                      View
+                    <button className="w-full sm:w-auto text-blue-600 font-medium py-2 px-4 rounded-md hover:bg-blue-200">
+                     <IconEye stroke={2} />
                     </button>
                   </Link>
                   <Link to={`/edit/${resume._id}`}>
-                    <button className="bg-yellow-100 text-yellow-600 font-medium py-2 px-4 rounded-md hover:bg-yellow-200">
-                      Edit
+                    <button className="w-full sm:w-auto  text-yellow-600 font-medium py-2 px-4 rounded-md hover:bg-yellow-200">
+                    <IconEdit stroke={2} />
                     </button>
                   </Link>
                   <button
                     type="button"
                     onClick={() => handleDelete(resume._id)}
-                    className="bg-red-100 text-red-600 font-medium px-4 py-2 rounded hover:bg-red-200"
+                    className="w-full sm:w-auto  text-red-600 font-medium px-4 py-2 rounded hover:bg-red-200"
                   >
-                    Delete
+                   <IconX stroke={2} />
                   </button>
+                  
                 </div>
               </div>
             ))
           ) : (
-            <p className="text-gray-500">No resumes found.</p>
+            <p className="text-gray-500 text-center">No resumes found.</p>
           )}
         </div>
       </div>
