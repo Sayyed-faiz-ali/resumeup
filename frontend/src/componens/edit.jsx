@@ -39,6 +39,7 @@ const EditResume = () => {
     fetchResume();
   }, [resumeId, navigate, API_URL]);
 
+  // ------------------- Handlers -------------------
   const handlePersonalChange = (e) => {
     const { name, value } = e.target;
     setResume(prev => ({
@@ -53,20 +54,31 @@ const EditResume = () => {
     setResume(prev => ({ ...prev, [field]: updated }));
   };
 
-  const addStringArrayItem = (field) => setResume(prev => ({ ...prev, [field]: [...(prev[field] || []), ""] }));
+  const addStringArrayItem = (field) =>
+    setResume(prev => ({ ...prev, [field]: [...(prev[field] || []), ""] }));
+
   const handleObjectArrayChange = (field, index, key, value) => {
     const updated = [...(resume[field] || [])];
     updated[index] = { ...updated[index], [key]: value };
     setResume(prev => ({ ...prev, [field]: updated }));
   };
-  const addObjectArrayItem = (field, newItem) => setResume(prev => ({ ...prev, [field]: [...(prev[field] || []), newItem] }));
-  const removeArrayItem = (field, index) => setResume(prev => ({ ...prev, [field]: [...prev[field].slice(0, index), ...prev[field].slice(index + 1)] }));
+
+  const addObjectArrayItem = (field, newItem) =>
+    setResume(prev => ({ ...prev, [field]: [...(prev[field] || []), newItem] }));
+
+  const removeArrayItem = (field, index) =>
+    setResume(prev => ({
+      ...prev,
+      [field]: [...prev[field].slice(0, index), ...prev[field].slice(index + 1)]
+    }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
     try {
-      await axios.put(`${API_URL}/api/data/${resumeId}`, resume, { headers: { "x-auth-token": token } });
+      await axios.put(`${API_URL}/api/data/${resumeId}`, resume, {
+        headers: { "x-auth-token": token }
+      });
       alert("Resume updated successfully!");
       navigate("/dashboard");
     } catch (err) {
@@ -74,6 +86,7 @@ const EditResume = () => {
     }
   };
 
+  // ------------------- UI -------------------
   if (loading) return <div className="flex justify-center mt-20"><LoadingDots /></div>;
   if (error) return <p className="text-red-600 mt-4 text-center">{error}</p>;
 
@@ -82,7 +95,6 @@ const EditResume = () => {
       <h1 className="text-2xl md:text-3xl font-bold text-center mb-6">Edit Resume</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* Personal Details */}
         <div className="space-y-2">
           <h2 className="font-semibold text-lg">Personal Details</h2>
           {["name","email","phone","linkedin","github"].map(field => (
@@ -99,7 +111,6 @@ const EditResume = () => {
           ))}
         </div>
 
-        {/* Skills */}
         <div>
           <h2 className="font-semibold text-lg mb-2">Skills</h2>
           {(resume.skills || []).map((skill, i) => (
@@ -111,15 +122,14 @@ const EditResume = () => {
           <button type="button" onClick={() => addStringArrayItem("skills")} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Add Skill</button>
         </div>
 
-        {/* Education */}
         <div>
           <h2 className="font-semibold text-lg mb-2">Education</h2>
           {(resume.education || []).map((edu, i) => (
             <div key={i} className="mb-2 border p-2 rounded space-y-1">
               <input type="text" placeholder="School" value={edu.school || ""} onChange={e => handleObjectArrayChange("education", i, "school", e.target.value)} className="border p-1 w-full rounded"/>
               <input type="text" placeholder="Degree" value={edu.degree || ""} onChange={e => handleObjectArrayChange("education", i, "degree", e.target.value)} className="border p-1 w-full rounded"/>
-              <input type="date" placeholder="Start Date" value={edu.startDate?.split("T")[0] || ""} onChange={e => handleObjectArrayChange("education", i, "startDate", e.target.value)} className="border p-1 w-full rounded"/>
-              <input type="date" placeholder="End Date" value={edu.endDate?.split("T")[0] || ""} onChange={e => handleObjectArrayChange("education", i, "endDate", e.target.value)} className="border p-1 w-full rounded"/>
+              <input type="date" value={edu.startDate?.split("T")[0] || ""} onChange={e => handleObjectArrayChange("education", i, "startDate", e.target.value)} className="border p-1 w-full rounded"/>
+              <input type="date" value={edu.endDate?.split("T")[0] || ""} onChange={e => handleObjectArrayChange("education", i, "endDate", e.target.value)} className="border p-1 w-full rounded"/>
               <textarea placeholder="Description" value={edu.description || ""} onChange={e => handleObjectArrayChange("education", i, "description", e.target.value)} className="border p-1 w-full rounded"/>
               <button type="button" onClick={() => removeArrayItem("education", i)} className="text-red-500">Remove</button>
             </div>
@@ -127,7 +137,57 @@ const EditResume = () => {
           <button type="button" onClick={() => addObjectArrayItem("education", { school:"", degree:"", startDate:"", endDate:"", description:"" })} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Add Education</button>
         </div>
 
-        {/* Add other sections similarly (experience, achievements, projects, certificates) */}
+        <div>
+          <h2 className="font-semibold text-lg mb-2">Experience</h2>
+          {(resume.experience || []).map((exp, i) => (
+            <div key={i} className="mb-2 border p-2 rounded space-y-1">
+              <input type="text" placeholder="Company" value={exp.company || ""} onChange={e => handleObjectArrayChange("experience", i, "company", e.target.value)} className="border p-1 w-full rounded"/>
+              <input type="text" placeholder="Role" value={exp.role || ""} onChange={e => handleObjectArrayChange("experience", i, "role", e.target.value)} className="border p-1 w-full rounded"/>
+              <input type="date" value={exp.startDate?.split("T")[0] || ""} onChange={e => handleObjectArrayChange("experience", i, "startDate", e.target.value)} className="border p-1 w-full rounded"/>
+              <input type="date" value={exp.endDate?.split("T")[0] || ""} onChange={e => handleObjectArrayChange("experience", i, "endDate", e.target.value)} className="border p-1 w-full rounded"/>
+              <textarea placeholder="Description" value={exp.description || ""} onChange={e => handleObjectArrayChange("experience", i, "description", e.target.value)} className="border p-1 w-full rounded"/>
+              <button type="button" onClick={() => removeArrayItem("experience", i)} className="text-red-500">Remove</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => addObjectArrayItem("experience", { company:"", role:"", startDate:"", endDate:"", description:"" })} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Add Experience</button>
+        </div>
+
+        <div>
+          <h2 className="font-semibold text-lg mb-2">Projects</h2>
+          {(resume.projects || []).map((proj, i) => (
+            <div key={i} className="mb-2 border p-2 rounded space-y-1">
+              <input type="text" placeholder="Title" value={proj.title || ""} onChange={e => handleObjectArrayChange("projects", i, "title", e.target.value)} className="border p-1 w-full rounded"/>
+              <textarea placeholder="Description" value={proj.description || ""} onChange={e => handleObjectArrayChange("projects", i, "description", e.target.value)} className="border p-1 w-full rounded"/>
+              <input type="text" placeholder="Link" value={proj.link || ""} onChange={e => handleObjectArrayChange("projects", i, "link", e.target.value)} className="border p-1 w-full rounded"/>
+              <button type="button" onClick={() => removeArrayItem("projects", i)} className="text-red-500">Remove</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => addObjectArrayItem("projects", { title:"", description:"", link:"" })} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Add Project</button>
+        </div>
+
+        <div>
+          <h2 className="font-semibold text-lg mb-2">Certificates</h2>
+          {(resume.certificate || []).map((cert, i) => (
+            <div key={i} className="mb-2 border p-2 rounded space-y-1">
+              <input type="text" placeholder="Title" value={cert.title || ""} onChange={e => handleObjectArrayChange("certificate", i, "title", e.target.value)} className="border p-1 w-full rounded"/>
+              <input type="text" placeholder="Issuer" value={cert.issuer || ""} onChange={e => handleObjectArrayChange("certificate", i, "issuer", e.target.value)} className="border p-1 w-full rounded"/>
+              <input type="date" value={cert.date?.split("T")[0] || ""} onChange={e => handleObjectArrayChange("certificate", i, "date", e.target.value)} className="border p-1 w-full rounded"/>
+              <button type="button" onClick={() => removeArrayItem("certificate", i)} className="text-red-500">Remove</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => addObjectArrayItem("certificate", { title:"", issuer:"", date:"" })} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Add Certificate</button>
+        </div>
+
+        <div>
+          <h2 className="font-semibold text-lg mb-2">Achievements</h2>
+          {(resume.achievements || []).map((ach, i) => (
+            <div key={i} className="flex gap-2 mb-2">
+              <input type="text" placeholder="Achievement" value={ach} onChange={e => handleStringArrayChange("achievements", i, e.target.value)} className="border p-2 rounded flex-1"/>
+              <button type="button" onClick={() => removeArrayItem("achievements", i)} className="text-red-500">Remove</button>
+            </div>
+          ))}
+          <button type="button" onClick={() => addStringArrayItem("achievements")} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700">Add Achievement</button>
+        </div>
 
         <div className="flex gap-2">
           <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">Save Changes</button>
