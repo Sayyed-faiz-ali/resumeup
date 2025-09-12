@@ -72,24 +72,26 @@ exports.Remove = async (req, res) => {
 // Edit resume controller
 exports.Edit = async (req, res) => {
   try {
-    const resumeId = req.params.id;
-    const updateData = req.body; 
+    const resumeId = req.params.resumeId;
 
-    const resume = await ResumeModel.findById(resumeId);
-    if (!resume) {
-      return res.status(404).json({ msg: "Resume not found" });
-    }
+    const updateData = req.body;
 
-   
     const updatedResume = await ResumeModel.findByIdAndUpdate(
       resumeId,
       { $set: updateData },
-      { new: true } 
+      { new: true, runValidators: true }
     );
+
+    if (!updatedResume) {
+      return res.status(404).json({ msg: "Resume not found" });
+   
+   
+   
+    }
 
     res.json(updatedResume);
   } catch (err) {
-    console.error(err.message);
+    console.error("Edit error:", err.message);
     res.status(500).send("Server Error");
   }
 };
